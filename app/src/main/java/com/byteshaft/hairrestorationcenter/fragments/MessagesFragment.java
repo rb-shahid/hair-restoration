@@ -149,7 +149,6 @@ public class MessagesFragment extends Fragment implements View.OnClickListener {
             this.checkInternet = checkInternet;
         }
 
-
         private JSONObject jsonObject;
         private ProgressDialog progressDialog;
         private boolean checkInternet = false;
@@ -194,7 +193,14 @@ public class MessagesFragment extends Fragment implements View.OnClickListener {
         @Override
         protected void onPostExecute(ArrayList<Integer> integers) {
             super.onPostExecute(integers);
+            Log.i("TAG", "post execute");
             progressDialog.dismiss();
+            Log.i("TAg", String.valueOf(messagesArray == null));
+            if (!AppGlobals.sIsInternetAvailable) {
+                Helpers.alertDialog(getActivity(), "No internet", "Please check your internet connection",
+                        executeTaskFetch(true));
+                return;
+            }
             if (messagesArray != null) {
                 arrayAdapter = new ChatArrayAdapter(AppGlobals.getContext(), R.layout.delegate_chat, messagesArray);
                 list.setAdapter(arrayAdapter);

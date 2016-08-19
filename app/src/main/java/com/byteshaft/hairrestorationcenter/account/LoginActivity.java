@@ -163,7 +163,8 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
             WebServiceHelpers.dismissProgressDialog();
             if (jsonObject != null) {
                 try {
-                    if (jsonObject.getString("Message").equals("Input is invalid")) {
+                    if (jsonObject.getString("Message").equals("Input is invalid") || jsonObject.get("Message")
+                            .equals("The information you entered is incorrect")) {
                         AppGlobals.alertDialog(LoginActivity.this, "Login Failed!", "Invalid Email or Password");
 
                     } else if (jsonObject.getString("Message").equals("Successfully")) {

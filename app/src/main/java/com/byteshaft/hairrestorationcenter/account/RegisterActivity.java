@@ -133,7 +133,8 @@ public class RegisterActivity extends AppCompatActivity implements View.OnClickL
             mPassword.setError(null);
         }
 
-        if (mVerifyPasswordString.trim().isEmpty() || mVerifyPasswordString.length() < 3) {
+        if (mVerifyPasswordString.trim().isEmpty() || mVerifyPasswordString.length() < 3 ||
+                !mVerifyPasswordString.equals(mPasswordString)) {
             mVerifyPassword.setError("password does not match");
             valid = false;
         } else {

@@ -3,6 +3,7 @@ package com.byteshaft.hairrestorationcenter.fragments;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -10,6 +11,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import com.byteshaft.hairrestorationcenter.MainActivity;
 import com.byteshaft.hairrestorationcenter.R;
 import com.byteshaft.hairrestorationcenter.utils.AppGlobals;
 import com.byteshaft.hairrestorationcenter.utils.Helpers;
@@ -38,6 +40,8 @@ public class ResetPassword extends Fragment {
         mBaseView = inflater.inflate(R.layout.reset_password, container, false);
         setHasOptionsMenu(true);
         mEmail = (EditText) mBaseView.findViewById(R.id.email_address);
+        mEmail.setText(AppGlobals.getStringFromSharedPreferences(AppGlobals.KEY_EMAIL));
+        mEmail.setEnabled(false);
         mOldPassword = (EditText) mBaseView.findViewById(R.id.old_password);
         mNewPassword = (EditText) mBaseView.findViewById(R.id.password);
         mResetButton = (Button) mBaseView.findViewById(R.id.reset_button);
@@ -144,12 +148,13 @@ public class ResetPassword extends Fragment {
         protected void onPostExecute(String s) {
             super.onPostExecute(s);
             WebServiceHelpers.dismissProgressDialog();
+            Log.i("TAG", jsonObject.toString());
             try {
-                if (jsonObject.getString("Message").equals("Old Password Wrong")) {
+                if (jsonObject.getString("Message").equals("Input is invalid") || jsonObject.get("Message").equals("Old Password Wrong")) {
                     AppGlobals.alertDialog(getActivity(), "Resetting Failed!", "old Password is wrong");
                 } else if (jsonObject.getString("Message").equals("Successfully")) {
                     System.out.println(jsonObject + "working");
-                    getActivity().finish();
+                    MainActivity.loadFragment(new EducationFragment());
                     Toast.makeText(getActivity(), "Your password successfully changed", Toast.LENGTH_SHORT).show();
                 } else {
                     Helpers.alertDialog(getActivity(), "No internet", "Please check your internet connection",

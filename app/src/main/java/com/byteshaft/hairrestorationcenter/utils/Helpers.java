@@ -6,8 +6,6 @@ import android.content.DialogInterface;
 import android.os.Environment;
 import android.support.v7.app.AlertDialog;
 
-import com.byteshaft.hairrestorationcenter.MainActivity;
-
 import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -48,7 +46,6 @@ public class Helpers {
         alertDialogBuilder.setMessage(msg).setCancelable(false).setPositiveButton("Ok", new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int id) {
                 dialog.dismiss();
-                MainActivity.getInstance().finish();
             }
         });
         alertDialogBuilder.setNegativeButton("Retry", new DialogInterface.OnClickListener() {

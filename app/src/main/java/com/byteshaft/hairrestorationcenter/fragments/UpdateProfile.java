@@ -57,6 +57,7 @@ public class UpdateProfile extends Fragment {
         mEmailAddress.setText(AppGlobals.getStringFromSharedPreferences(AppGlobals.KEY_EMAIL));
         mZipCode.setText(AppGlobals.getStringFromSharedPreferences(AppGlobals.KEY_ZIP_CODE));
         mPhoneNumber.setText(AppGlobals.getStringFromSharedPreferences(AppGlobals.KEY_PHONE_NUMBER));
+        mEmailAddress.setEnabled(false);
         mUpdateButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
