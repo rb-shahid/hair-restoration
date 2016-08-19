@@ -168,10 +168,15 @@ public class ConsultationFragment extends Fragment implements View.OnClickListen
                                     executeTask(true));
                         }
                     } else {
+//                        FragmentManager fragmentManager = getFragmentManager();
+//                        FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+//                        fragmentTransaction.replace(R.id.container, new HealthInformation());
+//                        fragmentTransaction.addToBackStack("Health_info");
+//                        fragmentTransaction.commit();
                         FragmentManager fragmentManager = getFragmentManager();
-                        FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-                        fragmentTransaction.replace(R.id.container, new HealthInformation());
-                        fragmentTransaction.addToBackStack("Health_info");
+                        FragmentTransaction fragmentTransaction=fragmentManager.beginTransaction();
+                        fragmentTransaction.replace(R.id.container,new HealthInformation() , "health");
+                        fragmentTransaction.addToBackStack(null); //this will add it to back stack
                         fragmentTransaction.commit();
                     }
                 }
@@ -394,23 +399,25 @@ public class ConsultationFragment extends Fragment implements View.OnClickListen
                 break;
             case HttpRequest.STATE_DONE:
                 progressDialog.dismiss();
-                try {
-                    jsonObject = new JSONObject(mRequest.getResponseText());
-                    if (jsonObject.getString("Message").equals("Successfully")) {
-                        JSONObject jsonDetails = jsonObject.getJSONObject("details");
-                        AppGlobals.sEntryId = jsonDetails.getInt("entry_id");
+                if (request != null) {
+                    try {
+                        jsonObject = new JSONObject(mRequest.getResponseText());
+                        if (jsonObject.getString("Message").equals("Successfully")) {
+                            JSONObject jsonDetails = jsonObject.getJSONObject("details");
+                            AppGlobals.sEntryId = jsonDetails.getInt("entry_id");
 
-                        FragmentManager fragmentManager = getFragmentManager();
-                        FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-                        fragmentTransaction.replace(R.id.container, new HealthInformation());
-                        fragmentTransaction.addToBackStack("Health_info");
-                        fragmentTransaction.commit();
+                            FragmentManager fragmentManager = getFragmentManager();
+                            FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+                            fragmentTransaction.replace(R.id.container, new HealthInformation());
+                            fragmentTransaction.addToBackStack("Health_info");
+                            fragmentTransaction.commit();
 
 
 //                        startActivity(new Intent(getActivity().getApplicationContext(), HealthInformation.class));
+                        }
+                    } catch (JSONException e) {
+                        e.printStackTrace();
                     }
-                } catch (JSONException e) {
-                    e.printStackTrace();
                 }
                 break;
         }

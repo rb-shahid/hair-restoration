@@ -324,7 +324,8 @@ public class HealthInformation extends Fragment implements
                                         if (checkBoxAnswer.size() > 0) {
                                             try {
                                                 answersList.put(fieldsDetail.get(position)
-                                                        .getInt("id"), checkBoxAnswer.toString());
+                                                        .getInt("id"), checkBoxAnswer.toString().replace("[", "")
+                                                        .replace("]", ""));
                                                 Log.i("checked", String.valueOf(answersList));
                                             } catch (JSONException e) {
                                                 e.printStackTrace();
@@ -396,7 +397,7 @@ public class HealthInformation extends Fragment implements
             if (answersList.size() >= (requiredFields.size() - 1)) {
                 if (answersList.containsKey(id)) {
                     value = true;
-                    stringBuilder.append(String.format("[%d]=%s&", id, answersList.get(id)));
+                    stringBuilder.append(String.format("data[%d]=%s&", id, answersList.get(id)));
                 }
             } else if (answersList.size() < requiredFields.size()) {
                 value = false;
@@ -410,7 +411,7 @@ public class HealthInformation extends Fragment implements
         }
         stringBuilder.append(String.format("user_id=%s&", AppGlobals.getStringFromSharedPreferences(AppGlobals.KEY_USER_ID)));
         stringBuilder.append(String.format("entry_id=%s&", AppGlobals.sEntryId));
-        stringBuilder.append(String.format("[%d]=%s", idForGender, gender.getSelectedItem().toString()));
+        stringBuilder.append(String.format("data[%d]=%s", idForGender, gender.getSelectedItem().toString()));
         Log.i("String", stringBuilder.toString());
         return value;
     }
@@ -423,6 +424,7 @@ public class HealthInformation extends Fragment implements
     }
 
     private void sendConsultationData(String data) {
+        Log.i("TAG", data);
         sPostRequest = true;
         mRequest = new HttpRequest(getActivity().getApplicationContext());
         mRequest.setOnReadyStateChangeListener(this);

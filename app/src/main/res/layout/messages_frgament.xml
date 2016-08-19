@@ -47,9 +47,13 @@
             style="@style/Widget.AppCompat.EditText"
             android:id="@+id/et_chat"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
+            android:maxLines="4"
+            android:lines="3"
             android:textSize="20dp"
-            android:inputType="textShortMessage"
+            android:scrollbars="vertical"
+            android:minLines="2"
+            android:inputType="textMultiLine"
             android:layout_weight="8"
             android:background="@android:drawable/editbox_background_normal"/>
 
