@@ -253,11 +253,11 @@ public class WebServiceHelpers {
         return networkInfo != null && networkInfo.isConnected();
     }
 
-    public static boolean isInternetWorking() {
+    public static boolean isInternetActuallyWorking() {
         boolean success = false;
 
         try {
-            URL e = new URL("http://google.com");
+            URL e = new URL("http://www.google.com/");
             HttpURLConnection connection = (HttpURLConnection) e.openConnection();
             connection.setConnectTimeout(5000);
             connection.connect();

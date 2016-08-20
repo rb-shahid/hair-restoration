@@ -97,7 +97,7 @@ public class ForgotPasswordActivity extends AppCompatActivity {
             if (AppGlobals.sIsInternetAvailable) {
                 sendData();
             } else if (checkInternet) {
-                if (WebServiceHelpers.isNetworkAvailable() && WebServiceHelpers.isInternetWorking()) {
+                if (WebServiceHelpers.isNetworkAvailable()) {
                     sendData();
                 }
             }

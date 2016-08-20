@@ -11,7 +11,7 @@ import android.support.v7.app.AlertDialog;
 public class AppGlobals extends Application {
 
     private static Context sContext;
-    private static final String BASE_URL = "http://dynobranding.com/client/hairapp/api/";
+    private static final String BASE_URL = "https://dynobranding.com/client/hairapp/api/";
     public static final String REGISTER_URL = String.format("%ssignup.php?", BASE_URL);
     public static final String LOGIN_URL =  String.format("%ssignin.php?", BASE_URL);
     public static final String RESET_PASSWORD_URL = String.format("%sreset_password.php?", BASE_URL);

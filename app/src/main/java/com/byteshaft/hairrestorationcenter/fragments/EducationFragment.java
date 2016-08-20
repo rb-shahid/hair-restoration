@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -71,6 +72,7 @@ public class EducationFragment extends Fragment implements HttpRequest.OnReadySt
                 mProgressDialog.dismiss();
                 switch (request.getStatus()) {
                     case HttpURLConnection.HTTP_OK:
+                        Log.i("TAG", mRequest.getResponseText());
                         sAdapter = new EducationAdapter(parseJson(mRequest.getResponseText()));
                         mRecyclerView.setAdapter(sAdapter);
                 }
@@ -95,6 +97,7 @@ public class EducationFragment extends Fragment implements HttpRequest.OnReadySt
             jsonObject = new JSONObject(data);
             if (jsonObject.getString("Message").equals("Successfully")) {
                 JSONArray jsonArray = jsonObject.getJSONArray("details");
+                Log.i("TAG", jsonArray.toString());
                 for (int i = 0; i < jsonArray.length(); i++) {
                     JSONObject json = jsonArray.getJSONObject(i);
                     sDataList.add(json);
@@ -130,8 +133,9 @@ public class EducationFragment extends Fragment implements HttpRequest.OnReadySt
             holder.setIsRecyclable(false);
             try {
                 mViewHolder.textViewOffers.setText(data.get(position).getString("title"));
+                Log.i("TAG", data.get(position).getString("photo").replaceAll("\"", "").replaceAll(" ", "%20"));
                 Picasso.with(getActivity())
-                        .load("http:" + data.get(position).getString("photo").replaceAll("\"", ""))
+                        .load("https:" + data.get(position).getString("photo").replaceAll("\"", "").replaceAll(" ", "%20"))
                         .resize(900, 300)
                         .centerCrop()
                         .into(mViewHolder.imageView);
@@ -189,7 +193,7 @@ public class EducationFragment extends Fragment implements HttpRequest.OnReadySt
             if (AppGlobals.sIsInternetAvailable) {
                 isInternetAvailable = true;
             } else if (checkInternet) {
-                if (WebServiceHelpers.isNetworkAvailable() && WebServiceHelpers.isInternetWorking()) {
+                if (WebServiceHelpers.isNetworkAvailable()) {
                     isInternetAvailable = true;
                 }
             }
@@ -199,6 +203,7 @@ public class EducationFragment extends Fragment implements HttpRequest.OnReadySt
         @Override
         protected void onPostExecute(Boolean aBoolean) {
             super.onPostExecute(aBoolean);
+            Log.i("TAG", "edu" + aBoolean);
             if (aBoolean) {
                 getEducationData();
             } else {

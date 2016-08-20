@@ -133,7 +133,7 @@ public class ContactUsFragment extends Fragment implements View.OnClickListener 
             if (AppGlobals.sIsInternetAvailable){
                 sendRequest();
             } else if (checkInternet) {
-                if (WebServiceHelpers.isNetworkAvailable() && WebServiceHelpers.isInternetWorking()) {
+                if (WebServiceHelpers.isNetworkAvailable()) {
                     sendRequest();
                 }
             }

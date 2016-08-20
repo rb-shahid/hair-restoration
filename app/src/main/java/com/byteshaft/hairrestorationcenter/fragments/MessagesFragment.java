@@ -74,7 +74,7 @@ public class MessagesFragment extends Fragment implements View.OnClickListener {
     public void onClick(View view) {
         switch (view.getId()) {
             case R.id.button_chat_send:
-                mMessageBodyString = mMessageBody.getText().toString();
+                mMessageBodyString = mMessageBody.getText().toString().replaceAll(" ", "%20");
                 if (!mMessageBodyString.trim().isEmpty()) {
                     new SendMessageTask().execute();
                 } else {
@@ -101,7 +101,7 @@ public class MessagesFragment extends Fragment implements View.OnClickListener {
             if (AppGlobals.sIsInternetAvailable) {
                 sendData();
             } else {
-                if (WebServiceHelpers.isNetworkAvailable() && WebServiceHelpers.isInternetWorking()) {
+                if (WebServiceHelpers.isNetworkAvailable()) {
                     sendData();
                 }
             }
@@ -114,12 +114,12 @@ public class MessagesFragment extends Fragment implements View.OnClickListener {
                         mMessageBodyString,
                         userId);
                 jsonObject = WebServiceHelpers.messageReceive(userId);
+                Log.i("TAG", jsonObject.toString());
                 if (jsonObject.getString("Message").equals("Successfully")) {
                     messagesArray = new ArrayList<>();
                     JSONArray details = jsonObject.getJSONArray("details");
                     for (int i = 0; i < details.length(); i++) {
                         JSONObject json = details.getJSONObject(i);
-                        Log.i("TAG", "result "+messagesArray.contains(json));
                         if (!messagesArray.contains(json)) {
                             messagesArray.add(json);
 
@@ -136,6 +136,7 @@ public class MessagesFragment extends Fragment implements View.OnClickListener {
             super.onPostExecute(s);
             Toast.makeText(AppGlobals.getContext(), "sent", Toast.LENGTH_SHORT).show();
             if (messagesArray.size() > 0) {
+                mMessageBodyString = "";
                 mMessageBody.setEnabled(true);
                 arrayAdapter = new ChatArrayAdapter(AppGlobals.getContext(), R.layout.delegate_chat, messagesArray);
                 list.setAdapter(arrayAdapter);
@@ -166,18 +167,19 @@ public class MessagesFragment extends Fragment implements View.OnClickListener {
         @Override
         protected ArrayList<Integer> doInBackground(String... strings) {
             if (AppGlobals.sIsInternetAvailable) {
-                sendData();
+                fetchData();
             } else if (checkInternet) {
-                if (WebServiceHelpers.isNetworkAvailable() && WebServiceHelpers.isInternetWorking()) {
-                    sendData();
+                if (WebServiceHelpers.isNetworkAvailable()) {
+                    fetchData();
                 }
             }
             return null;
         }
 
-        private void sendData() {
+        private void fetchData() {
             try {
                 jsonObject = WebServiceHelpers.messageReceive(userId);
+                Log.e("TAG", jsonObject.toString());
                 if (jsonObject.getString("Message").equals("Successfully")) {
                     JSONArray details = jsonObject.getJSONArray("details");
                     for (int i = 0; i < details.length(); i++) {

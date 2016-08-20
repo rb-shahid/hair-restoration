@@ -89,7 +89,7 @@ public class AboutUsFragment extends Fragment {
             if (AppGlobals.sIsInternetAvailable){
                 sendRequest();
             } else if (checkInternet) {
-                if (WebServiceHelpers.isNetworkAvailable() && WebServiceHelpers.isInternetWorking()) {
+                if (WebServiceHelpers.isNetworkAvailable()) {
                     sendRequest();
                 }
             }

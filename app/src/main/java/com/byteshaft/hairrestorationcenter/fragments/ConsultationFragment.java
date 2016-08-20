@@ -461,7 +461,7 @@ public class ConsultationFragment extends Fragment implements View.OnClickListen
             if (AppGlobals.sIsInternetAvailable) {
                 isInternetAvailable = true;
             } else if (checkInternet) {
-                if (WebServiceHelpers.isNetworkAvailable() && WebServiceHelpers.isInternetWorking()) {
+                if (WebServiceHelpers.isNetworkAvailable()) {
                     isInternetAvailable = true;
                 }
             }

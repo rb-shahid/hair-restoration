@@ -457,7 +457,7 @@ public class HealthInformation extends Fragment implements
             if (AppGlobals.sIsInternetAvailable) {
                 isInternetAvailable = true;
             } else if (checkInternet) {
-                if (WebServiceHelpers.isNetworkAvailable() && WebServiceHelpers.isInternetWorking()) {
+                if (WebServiceHelpers.isNetworkAvailable()) {
                     isInternetAvailable = true;
                 }
 
@@ -504,7 +504,7 @@ public class HealthInformation extends Fragment implements
                 if (AppGlobals.sIsInternetAvailable) {
                     isInternetAvailable = true;
                 } else if (checkInternet) {
-                    if (WebServiceHelpers.isNetworkAvailable() && WebServiceHelpers.isInternetWorking()) {
+                    if (WebServiceHelpers.isNetworkAvailable()) {
                         isInternetAvailable = true;
                     }
                 }

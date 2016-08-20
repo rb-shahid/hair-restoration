@@ -138,7 +138,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
             if (AppGlobals.sIsInternetAvailable) {
                 sendData();
             } else if (checkInternet) {
-                if (WebServiceHelpers.isNetworkAvailable() && WebServiceHelpers.isInternetWorking()) {
+                if (WebServiceHelpers.isNetworkAvailable()) {
                     sendData();
                 }
             }
@@ -198,10 +198,11 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
-            } else {
+            } else if (jsonObject == null && !AppGlobals.sIsInternetAvailable) {
                 Helpers.alertDialog(LoginActivity.this, "No internet", "Please check your internet connection",
                         executeTask(true));
-
+            } else {
+                AppGlobals.alertDialog(LoginActivity.this, "Error", "Please try again!");
             }
         }
     }

@@ -39,7 +39,7 @@ public class NetworkChangeReceiver extends BroadcastReceiver {
         @Override
         protected Boolean doInBackground(String... strings) {
             boolean isInternetAvailable = false;
-            if (WebServiceHelpers.isNetworkAvailable() && WebServiceHelpers.isInternetWorking()) {
+            if (WebServiceHelpers.isNetworkAvailable() && WebServiceHelpers.isInternetActuallyWorking()) {
                 isInternetAvailable = true;
             }
             return isInternetAvailable;

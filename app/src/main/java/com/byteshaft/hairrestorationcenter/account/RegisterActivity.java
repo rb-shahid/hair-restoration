@@ -175,7 +175,7 @@ public class RegisterActivity extends AppCompatActivity implements View.OnClickL
             if (AppGlobals.sIsInternetAvailable) {
                 sendData();
             } else if (checkInternet) {
-                if (WebServiceHelpers.isNetworkAvailable() && WebServiceHelpers.isInternetWorking()) {
+                if (WebServiceHelpers.isNetworkAvailable()) {
                     sendData();
                 }
             }
@@ -204,43 +204,45 @@ public class RegisterActivity extends AppCompatActivity implements View.OnClickL
             super.onPostExecute(s);
             WebServiceHelpers.dismissProgressDialog();
             try {
-                if (jsonObject.getString("Message").equals("Input is invalid;")) {
-                    AppGlobals.alertDialog(RegisterActivity.this, "Registration Failed!", "username or email already exits");
+                if (jsonObject != null) {
+                    if (jsonObject.getString("Message").equals("Input is invalid;")) {
+                        AppGlobals.alertDialog(RegisterActivity.this, "Registration Failed!", "username or email already exits");
 
-                } else if (jsonObject.getString("Message").equals("Username or email already exits")) {
-                    AppGlobals.alertDialog(RegisterActivity.this, "Already Exist!", jsonObject.getString("Message"));
+                    } else if (jsonObject.getString("Message").equals("Username or email already exits")) {
+                        AppGlobals.alertDialog(RegisterActivity.this, "Already Exist!", jsonObject.getString("Message"));
 
-                }else if (jsonObject.getString("Message").equals("Successfully")) {
-                    JSONObject details = jsonObject.getJSONObject("details");
-                    System.out.println(jsonObject + "working");
-                    String username = details.getString(AppGlobals.KEY_USER_NAME);
-                    String userId = details.getString(AppGlobals.KEY_USER_ID);
-                    String firstName = details.getString(AppGlobals.KEY_FIRSTNAME);
-                    String lastName = details.getString(AppGlobals.KEY_LASTNAME);
-                    String email = details.getString(AppGlobals.KEY_EMAIL);
-                    String phoneNumber = details.getString(AppGlobals.KEY_PHONE_NUMBER);
-                    String zipCode = details.getString(AppGlobals.KEY_ZIP_CODE);
+                    } else if (jsonObject.getString("Message").equals("Successfully")) {
+                        JSONObject details = jsonObject.getJSONObject("details");
+                        System.out.println(jsonObject + "working");
+                        String username = details.getString(AppGlobals.KEY_USER_NAME);
+                        String userId = details.getString(AppGlobals.KEY_USER_ID);
+                        String firstName = details.getString(AppGlobals.KEY_FIRSTNAME);
+                        String lastName = details.getString(AppGlobals.KEY_LASTNAME);
+                        String email = details.getString(AppGlobals.KEY_EMAIL);
+                        String phoneNumber = details.getString(AppGlobals.KEY_PHONE_NUMBER);
+                        String zipCode = details.getString(AppGlobals.KEY_ZIP_CODE);
 
-                    //saving values
-                    AppGlobals.saveDataToSharedPreferences(AppGlobals.KEY_FIRSTNAME, firstName);
-                    Log.i("First name", " " + AppGlobals.getStringFromSharedPreferences(AppGlobals.KEY_FIRSTNAME));
-                    AppGlobals.saveDataToSharedPreferences(AppGlobals.KEY_LASTNAME, lastName);
-                    AppGlobals.saveDataToSharedPreferences(AppGlobals.KEY_EMAIL, email);
-                    AppGlobals.saveDataToSharedPreferences(AppGlobals.KEY_PHONE_NUMBER, phoneNumber);
-                    AppGlobals.saveDataToSharedPreferences(AppGlobals.KEY_ZIP_CODE, zipCode);
-                    AppGlobals.saveDataToSharedPreferences(AppGlobals.KEY_USER_ID, userId);
-                    AppGlobals.saveDataToSharedPreferences(AppGlobals.KEY_USER_NAME, username);
-                    AppGlobals.saveUserLogin(true);
-                    LoginActivity.getInstance().finish();
-                    finish();
-                    Toast.makeText(RegisterActivity.this, "Account Created Successfully", Toast.LENGTH_SHORT).show();
-                } else {
-                    Helpers.alertDialog(RegisterActivity.this, "No internet", "Please check your internet connection",
-                            executeTask(true));
+                        //saving values
+                        AppGlobals.saveDataToSharedPreferences(AppGlobals.KEY_FIRSTNAME, firstName);
+                        Log.i("First name", " " + AppGlobals.getStringFromSharedPreferences(AppGlobals.KEY_FIRSTNAME));
+                        AppGlobals.saveDataToSharedPreferences(AppGlobals.KEY_LASTNAME, lastName);
+                        AppGlobals.saveDataToSharedPreferences(AppGlobals.KEY_EMAIL, email);
+                        AppGlobals.saveDataToSharedPreferences(AppGlobals.KEY_PHONE_NUMBER, phoneNumber);
+                        AppGlobals.saveDataToSharedPreferences(AppGlobals.KEY_ZIP_CODE, zipCode);
+                        AppGlobals.saveDataToSharedPreferences(AppGlobals.KEY_USER_ID, userId);
+                        AppGlobals.saveDataToSharedPreferences(AppGlobals.KEY_USER_NAME, username);
+                        AppGlobals.saveUserLogin(true);
+                        LoginActivity.getInstance().finish();
+                        finish();
+                        Toast.makeText(RegisterActivity.this, "Account Created Successfully", Toast.LENGTH_SHORT).show();
+                    } else {
+                        Helpers.alertDialog(RegisterActivity.this, "No internet", "Please check your internet connection",
+                                executeTask(true));
+                    }
                 }
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
+                }catch(JSONException e){
+                    e.printStackTrace();
+                }
         }
     }
 }
