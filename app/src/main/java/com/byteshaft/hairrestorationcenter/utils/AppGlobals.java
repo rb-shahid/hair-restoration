@@ -45,6 +45,8 @@ public class AppGlobals extends Application {
     public static boolean sIsInternetAvailable = false;
     public static Activity sActivity;
     public static boolean logout = false;
+    public static final String GCM_STATE_KEY = "gcm_key_state";
+    public static final String SEND_REG_KEY = String.format("%sdevice_register.php?", BASE_URL);
 
     @Override
     public void onCreate() {
@@ -103,5 +105,15 @@ public class AppGlobals extends Application {
 
     public static SharedPreferences getPreferences() {
         return sPreferences;
+    }
+
+    public static void saveRegKeyState(boolean value) {
+        SharedPreferences sharedPreferences = getPreferenceManager();
+        sharedPreferences.edit().putBoolean(AppGlobals.GCM_STATE_KEY, value).apply();
+    }
+
+    public static boolean isRegKeysaved() {
+        SharedPreferences sharedPreferences = getPreferenceManager();
+        return sharedPreferences.getBoolean(AppGlobals.GCM_STATE_KEY, false);
     }
 }

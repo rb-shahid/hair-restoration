@@ -1,19 +1,24 @@
 package com.byteshaft.hairrestorationcenter;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.design.widget.NavigationView;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.MenuItem;
 
 import com.byteshaft.hairrestorationcenter.account.LoginActivity;
@@ -25,12 +30,18 @@ import com.byteshaft.hairrestorationcenter.fragments.LocationFragment;
 import com.byteshaft.hairrestorationcenter.fragments.MessagesFragment;
 import com.byteshaft.hairrestorationcenter.fragments.ResetPassword;
 import com.byteshaft.hairrestorationcenter.fragments.UpdateProfile;
+import com.byteshaft.hairrestorationcenter.gcm.QuickstartPreferences;
+import com.byteshaft.hairrestorationcenter.gcm.RegistrationIntentService;
 import com.byteshaft.hairrestorationcenter.utils.AppGlobals;
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.GoogleApiAvailability;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
 
     public static MainActivity sInstance;
+    private static final int PLAY_SERVICES_RESOLUTION_REQUEST = 9000;
+    private BroadcastReceiver mRegistrationBroadcastReceiver;
 
     public static MainActivity getInstance() {
         return sInstance;
@@ -43,7 +54,11 @@ public class MainActivity extends AppCompatActivity
         if (!AppGlobals.isUserLoggedIn()) {
             startActivity(new Intent(AppGlobals.getContext(), LoginActivity.class));
         }
-        loadFragment(new EducationFragment());
+        if (getIntent().getStringExtra("message") != null) {
+            loadFragment(new MessagesFragment());
+        } else {
+            loadFragment(new EducationFragment());
+        }
         setContentView(R.layout.activity_main);
         AppGlobals.sActivity = MainActivity.this;
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -57,6 +72,48 @@ public class MainActivity extends AppCompatActivity
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
         navigationView.setItemIconTintList(null);
+    }
+
+    private boolean checkPlayServices() {
+        GoogleApiAvailability apiAvailability = GoogleApiAvailability.getInstance();
+        int resultCode = apiAvailability.isGooglePlayServicesAvailable(this);
+        if (resultCode != ConnectionResult.SUCCESS) {
+            if (apiAvailability.isUserResolvableError(resultCode)) {
+                apiAvailability.getErrorDialog(this, resultCode, PLAY_SERVICES_RESOLUTION_REQUEST)
+                        .show();
+            } else {
+                Log.i("TAG", "This device is not supported.");
+                finish();
+            }
+            return false;
+        }
+        return true;
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (AppGlobals.isUserLoggedIn()) {
+            final boolean sentToken = AppGlobals.isRegKeysaved();
+            mRegistrationBroadcastReceiver = new BroadcastReceiver() {
+                @Override
+                public void onReceive(Context context, Intent intent) {
+                    if (sentToken) {
+                        System.out.println(R.string.gcm_send_message);
+                    } else {
+                        System.out.println(R.string.token_error_message);
+                    }
+                }
+
+            };
+            if (checkPlayServices() && !sentToken) {
+                // Start IntentService to register this application with GCM.
+                Intent intent = new Intent(this, RegistrationIntentService.class);
+                startService(intent);
+            }
+        }
+        LocalBroadcastManager.getInstance(MainActivity.this).registerReceiver(mRegistrationBroadcastReceiver,
+                new IntentFilter(QuickstartPreferences.REGISTRATION_COMPLETE));
     }
 
     @Override
