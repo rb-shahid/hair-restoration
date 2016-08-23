@@ -269,8 +269,9 @@ public class LocationFragment extends Fragment implements
             try {
                 holder.progressBar.setVisibility(View.VISIBLE);
                 Picasso picasso = Picasso.with(getActivity());
-                String url = "http:" + mItems.get(i).getString("photo").replaceAll(
+                String url = mItems.get(i).getString("photo").replaceAll(
                         "\"", "").replaceAll(" ", "%20");
+                Log.i("TAG", url);
                 picasso.load(url).resize(900, 300).centerCrop().into(
                         holder.bannerImageView, new Callback() {
                             @Override

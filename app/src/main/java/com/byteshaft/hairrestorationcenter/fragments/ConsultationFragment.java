@@ -29,6 +29,7 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.byteshaft.hairrestorationcenter.MainActivity;
 import com.byteshaft.hairrestorationcenter.R;
 import com.byteshaft.hairrestorationcenter.utils.AppGlobals;
 import com.byteshaft.hairrestorationcenter.utils.Helpers;
@@ -151,35 +152,35 @@ public class ConsultationFragment extends Fragment implements View.OnClickListen
                 }
                 break;
             case R.id.upload_button:
-//                MainActivity.loadFragment(new HealthInformation());
-//                FragmentManager fragmentManager = getFragmentManager();
-//                FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-//                fragmentTransaction.replace(R.id.container, new HealthInformation());
-//                fragmentTransaction.addToBackStack("Health_info");
-//                fragmentTransaction.commit();
-                if (imagesHashMap.size() < 5) {
-                    Toast.makeText(getActivity(), "Please capture all the images", Toast.LENGTH_SHORT).show();
-                } else {
-                    if (!sUploaded) {
-                        if (AppGlobals.sIsInternetAvailable) {
-                            new CheckInternet(false).execute();
-                        } else {
-                            Helpers.alertDialog(getActivity(), "No internet", "Please check your internet connection",
-                                    executeTask(true));
-                        }
-                    } else {
+                MainActivity.loadFragment(new HealthInformation());
+                FragmentManager fragmentManager = getFragmentManager();
+                FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+                fragmentTransaction.replace(R.id.container, new HealthInformation());
+                fragmentTransaction.addToBackStack("Health_info");
+                fragmentTransaction.commit();
+//                if (imagesHashMap.size() < 5) {
+//                    Toast.makeText(getActivity(), "Please capture all the images", Toast.LENGTH_SHORT).show();
+//                } else {
+//                    if (!sUploaded) {
+//                        if (AppGlobals.sIsInternetAvailable) {
+//                            new CheckInternet(false).execute();
+//                        } else {
+//                            Helpers.alertDialog(getActivity(), "No internet", "Please check your internet connection",
+//                                    executeTask(true));
+//                        }
+//                    } else {
+////                        FragmentManager fragmentManager = getFragmentManager();
+////                        FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+////                        fragmentTransaction.replace(R.id.container, new HealthInformation());
+////                        fragmentTransaction.addToBackStack("Health_info");
+////                        fragmentTransaction.commit();
 //                        FragmentManager fragmentManager = getFragmentManager();
-//                        FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-//                        fragmentTransaction.replace(R.id.container, new HealthInformation());
-//                        fragmentTransaction.addToBackStack("Health_info");
+//                        FragmentTransaction fragmentTransaction=fragmentManager.beginTransaction();
+//                        fragmentTransaction.replace(R.id.container,new HealthInformation() , "health");
+//                        fragmentTransaction.addToBackStack(null); //this will add it to back stack
 //                        fragmentTransaction.commit();
-                        FragmentManager fragmentManager = getFragmentManager();
-                        FragmentTransaction fragmentTransaction=fragmentManager.beginTransaction();
-                        fragmentTransaction.replace(R.id.container,new HealthInformation() , "health");
-                        fragmentTransaction.addToBackStack(null); //this will add it to back stack
-                        fragmentTransaction.commit();
-                    }
-                }
+//                    }
+//                }
         }
     }
 
