@@ -78,7 +78,7 @@ public class RegistrationIntentService extends IntentService implements HttpRequ
     private void sendRegistrationToServer(String token) {
         mRequest = new HttpRequest(getApplicationContext());
         mRequest.setOnReadyStateChangeListener(this);
-        String url = String.format("%suser_id=%s&registration_id=%s", AppGlobals.SEND_REG_KEY,
+        String url = String.format("%suser_id=%s&registration_id=%s&device_type=android", AppGlobals.SEND_REG_KEY,
                 AppGlobals.getStringFromSharedPreferences(AppGlobals.KEY_USER_ID), token);
         Log.i("TAG", url);
         mRequest.open("POST", url);

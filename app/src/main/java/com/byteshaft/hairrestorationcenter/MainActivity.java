@@ -57,6 +57,7 @@ public class MainActivity extends AppCompatActivity
         if (getIntent().getStringExtra("message") != null) {
             loadFragment(new MessagesFragment());
         } else {
+            if (AppGlobals.isUserLoggedIn())
             loadFragment(new EducationFragment());
         }
         setContentView(R.layout.activity_main);
