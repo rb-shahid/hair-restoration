@@ -73,7 +73,7 @@
                 android:background="@drawable/edit_text_bg"
                 android:drawablePadding="9dp"
                 android:hint="Email Address"
-                android:inputType="textPersonName"
+                android:inputType="textEmailAddress"
                 android:padding="15dp"
                 android:singleLine="true"
                 android:textSize="14sp" />

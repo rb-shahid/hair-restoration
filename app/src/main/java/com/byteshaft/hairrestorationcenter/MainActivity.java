@@ -57,7 +57,6 @@ public class MainActivity extends AppCompatActivity
         if (getIntent().getStringExtra("message") != null) {
             loadFragment(new MessagesFragment());
         } else {
-            if (AppGlobals.isUserLoggedIn())
             loadFragment(new EducationFragment());
         }
         setContentView(R.layout.activity_main);
@@ -182,7 +181,6 @@ public class MainActivity extends AppCompatActivity
                             editor.clear();
                             editor.commit();
                             AppGlobals.logout = true;
-                            finish();
                             startActivity(new Intent(getApplicationContext(), LoginActivity.class));
                         }
                     });

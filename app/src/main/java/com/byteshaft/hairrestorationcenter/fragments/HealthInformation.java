@@ -6,6 +6,7 @@ import android.content.DialogInterface;
 import android.graphics.Color;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.AlertDialog;
 import android.text.SpannableString;
@@ -15,6 +16,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -54,7 +56,7 @@ public class HealthInformation extends Fragment implements
     private ArrayList<JSONObject> fieldData;
     private ArrayList<Integer> idsArray;
     private HashMap<Integer, String> answersList;
-    private Button submitButton;
+//    private Button submitButton;
     private StringBuilder stringBuilder = new StringBuilder();
     private ArrayList<String> requiredFields;
     private int idForGender = 2;
@@ -68,6 +70,7 @@ public class HealthInformation extends Fragment implements
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         mBaseView = inflater.inflate(R.layout.health_information, container, false);
+        getActivity().getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
         fieldData = new ArrayList<>();
         idsArray = new ArrayList<>();
         answersList = new HashMap<>();
@@ -75,9 +78,9 @@ public class HealthInformation extends Fragment implements
         checkBoxAnswer = new ArrayList<>();
         age = (EditText) mBaseView.findViewById(R.id.age);
         gender = (Spinner) mBaseView.findViewById(R.id.gender);
-        submitButton = (Button) mBaseView.findViewById(R.id.submit_answers);
+//        submitButton = (Button) mBaseView.findViewById(R.id.submit_answers);
         mLinearlayout = (LinearLayout) mBaseView.findViewById(R.id.main_layout);
-        submitButton.setOnClickListener(this);
+//        submitButton.setOnClickListener(this);
         mListView = (ListView) mBaseView.findViewById(R.id.fields_list_view);
         mProgressDialog = Helpers.getProgressDialog(getActivity());
         age.setOnFocusChangeListener(new View.OnFocusChangeListener() {
@@ -233,7 +236,7 @@ public class HealthInformation extends Fragment implements
         switch (view.getId()) {
             case R.id.submit_answers:
                 mLinearlayout.requestFocus();
-                Log.i("TAG", "" + submitButton.hasFocus());
+//                Log.i("TAG", "" + submitButton.hasFocus());
                 if (AppGlobals.sEntryId == 0) {
                     Toast.makeText(getActivity(), "Please try again process failed",
                             Toast.LENGTH_SHORT).show();
@@ -259,6 +262,8 @@ public class HealthInformation extends Fragment implements
 
         private ArrayList<JSONObject> fieldsDetail;
         private ArrayList<String> checkBoxes;
+        private int lastFocussedPosition = -1;
+        private Handler handler = new Handler();
 
         public Adapter(Context context, ArrayList<JSONObject> fieldsDetail, int resource) {
             super(context, resource);
@@ -277,6 +282,7 @@ public class HealthInformation extends Fragment implements
                 holder.editText = (EditText) convertView.findViewById(R.id.field_answer);
                 holder.editTextLayout = (LinearLayout) convertView.findViewById(R.id.edit_text_layout);
                 holder.checkBoxLayout = (LinearLayout) convertView.findViewById(R.id.checkbox_layout);
+                holder.submitButton = (Button) convertView.findViewById(R.id.submit_answers);
                 convertView.setTag(holder);
             } else {
                 holder = (ViewHolder) convertView.getTag();
@@ -320,7 +326,6 @@ public class HealthInformation extends Fragment implements
                                     if (b) {
                                         Log.i("Checkbox", " " + compoundButton.getText().toString());
                                         checkBoxAnswer.add(compoundButton.getText().toString());
-                                        Log.i("TAG", String.valueOf(checkBoxAnswer));
                                         if (checkBoxAnswer.size() > 0) {
                                             try {
                                                 answersList.put(fieldsDetail.get(position)
@@ -337,7 +342,6 @@ public class HealthInformation extends Fragment implements
                                             try {
                                                 answersList.remove(fieldsDetail.get(position)
                                                         .getInt("id"));
-                                                Log.i("TAG", String.valueOf(answersList));
                                             } catch (JSONException e) {
                                                 e.printStackTrace();
                                             }
@@ -354,10 +358,22 @@ public class HealthInformation extends Fragment implements
                     holder.editText.setId(fieldsDetail.get(position).getInt("id"));
                     holder.editText.setOnFocusChangeListener(new View.OnFocusChangeListener() {
                         @Override
-                        public void onFocusChange(View view, boolean b) {
+                        public void onFocusChange(final View view, boolean b) {
                             if (b) {
+                                handler.postDelayed(new Runnable() {
+
+                                    @Override
+                                    public void run() {
+                                        if (lastFocussedPosition == -1 || lastFocussedPosition == position) {
+                                            lastFocussedPosition = position;
+                                            view.requestFocus();
+                                            holder.editText.setCursorVisible(true);
+                                        }
+                                    }
+                                }, 200);
 
                             } else {
+                                lastFocussedPosition = -1;
                                 try {
                                     if (answersList.containsKey(fieldsDetail.get(position).getInt("id"))
                                             && holder.editText.toString().trim().isEmpty()) {
@@ -370,13 +386,42 @@ public class HealthInformation extends Fragment implements
                                 } catch (JSONException e) {
                                     e.printStackTrace();
                                 }
-
                             }
                         }
                     });
                 }
             } catch (JSONException e) {
                 e.printStackTrace();
+            }
+            if ((position+1) == fieldsDetail.size()) {
+                holder.submitButton.setVisibility(View.VISIBLE);
+                holder.submitButton.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        mLinearlayout.requestFocus();
+//                Log.i("TAG", "" + submitButton.hasFocus());
+                        if (AppGlobals.sEntryId == 0) {
+                            Toast.makeText(getActivity(), "Please try again process failed",
+                                    Toast.LENGTH_SHORT).show();
+                            MainActivity.loadFragment(new ConsultationFragment());
+                        } else {
+                            boolean result = validateEditText();
+                            Log.i("boolean", " " + result);
+                            if (result) {
+                                mProgressDialog.show();
+                                if (AppGlobals.sIsInternetAvailable) {
+                                    new SendData(false).execute();
+                                } else {
+                                    Helpers.alertDialog(getActivity(), "No internet", "Please check your internet connection",
+                                            executeSendData(true));
+                                }
+                            }
+                        }
+
+                    }
+                });
+            } else {
+                holder.submitButton.setVisibility(View.GONE);
             }
             return convertView;
         }
@@ -421,6 +466,7 @@ public class HealthInformation extends Fragment implements
         public EditText editText;
         public LinearLayout editTextLayout;
         public LinearLayout checkBoxLayout;
+        public Button submitButton;
     }
 
     private void sendConsultationData(String data) {
