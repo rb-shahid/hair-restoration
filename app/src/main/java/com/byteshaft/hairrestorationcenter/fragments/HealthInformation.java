@@ -94,7 +94,6 @@ public class HealthInformation extends Fragment implements
                         answersList.remove(age.getId());
                     } else {
                         answersList.put(age.getId(), age.getText().toString());
-                        Log.i("TAG", String.valueOf(answersList));
                     }
                 }
             }
@@ -154,9 +153,11 @@ public class HealthInformation extends Fragment implements
                                 JSONObject jsonObject = new JSONObject(mRequest.getResponseText());
                                 if (jsonObject.getString("Message").equals("Successfully")) {
 
-                                    AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(getActivity());
+                                    AlertDialog.Builder alertDialogBuilder =
+                                            new AlertDialog.Builder(getActivity());
                                     alertDialogBuilder.setTitle("Success");
-                                    alertDialogBuilder.setMessage("Your details have uploaded successfully.")
+                                    alertDialogBuilder.setMessage("Your details have uploaded " +
+                                            "successfully.")
                                             .setCancelable(false).setPositiveButton("Ok", new DialogInterface.OnClickListener() {
                                         public void onClick(DialogInterface dialog, int id) {
                                             AppGlobals.sConsultationSuccess = true;
@@ -171,7 +172,6 @@ public class HealthInformation extends Fragment implements
                             } catch (JSONException e) {
                                 e.printStackTrace();
                             }
-                            Log.e("TAG", stringBuilder.toString());
                         } else {
                             parseJsonAndSetUi(mRequest.getResponseText());
                         }
@@ -226,8 +226,8 @@ public class HealthInformation extends Fragment implements
         } catch (JSONException e) {
             e.printStackTrace();
         }
-        Log.i("TAG", String.valueOf(fieldData));
-        Adapter adapter = new Adapter(getActivity().getApplicationContext(), fieldData, R.layout.delegate_consultation_fields);
+        Adapter adapter = new Adapter(getActivity().getApplicationContext(), fieldData,
+                R.layout.delegate_consultation_fields);
         mListView.setAdapter(adapter);
     }
 
@@ -249,7 +249,8 @@ public class HealthInformation extends Fragment implements
                         if (AppGlobals.sIsInternetAvailable) {
                             new SendData(false).execute();
                         } else {
-                            Helpers.alertDialog(getActivity(), "No internet", "Please check your internet connection",
+                            Helpers.alertDialog(getActivity(), "No internet", "Please check your " +
+                                    "internet connection",
                                     executeSendData(true));
                         }
                     }
@@ -262,12 +263,13 @@ public class HealthInformation extends Fragment implements
 
         private ArrayList<JSONObject> fieldsDetail;
         private ArrayList<String> checkBoxes;
-        private int lastFocussedPosition = -1;
+        private int lastFocusedPosition = -1;
         private Handler handler = new Handler();
 
         public Adapter(Context context, ArrayList<JSONObject> fieldsDetail, int resource) {
             super(context, resource);
             this.fieldsDetail = fieldsDetail;
+            Log.i("TAG", String.valueOf(fieldsDetail));
             checkBoxes = new ArrayList<>();
         }
 
@@ -288,25 +290,10 @@ public class HealthInformation extends Fragment implements
                 holder = (ViewHolder) convertView.getTag();
             }
             try {
-                SpannableStringBuilder title = new SpannableStringBuilder();
-                if (fieldsDetail.get(position).getInt("required") == 1) {
-                    String red = "* ";
-                    SpannableString redSpannable = new SpannableString(red);
-                    redSpannable.setSpan(new ForegroundColorSpan(Color.RED), 0, red.length(), 0);
-                    title.append(redSpannable);
-                    String white = fieldsDetail.get(position).getString("title");
-                    SpannableString whiteSpannable = new SpannableString(white);
-                    whiteSpannable.setSpan(new ForegroundColorSpan(Color.WHITE), 0, white.length(), 0);
-                    title.append(whiteSpannable);
-                } else {
-                    String white = fieldsDetail.get(position).getString("title");
-                    SpannableString whiteSpannable = new SpannableString(white);
-                    whiteSpannable.setSpan(new ForegroundColorSpan(Color.WHITE), 0, white.length(), 0);
-                    title.append(whiteSpannable);
-                }
-                holder.title.setText(title, TextView.BufferType.SPANNABLE);
-                if (fieldsDetail.get(position).getString("field_type").equals("checkbox")) {
+                Log.e("TAG", "condition " + fieldsDetail.get(position).getString("field_type").equals("textbox"));
+                if (!fieldsDetail.get(position).getString("field_type").equals("textbox")) {
                     holder.editTextLayout.setVisibility(View.GONE);
+                    holder.checkBoxLayout.setVisibility(View.VISIBLE);
                     JSONArray arrJson = fieldsDetail.get(position).getJSONArray("field_data");
                     String[] strings = new String[arrJson.length()];
                     for (int i = 0; i < arrJson.length(); i++) {
@@ -353,8 +340,9 @@ public class HealthInformation extends Fragment implements
                             holder.checkBoxLayout.addView(checkBox);
                         }
                     }
-
                 } else {
+                    holder.editTextLayout.setVisibility(View.VISIBLE);
+                    holder.checkBoxLayout.setVisibility(View.GONE);
                     holder.editText.setId(fieldsDetail.get(position).getInt("id"));
                     holder.editText.setOnFocusChangeListener(new View.OnFocusChangeListener() {
                         @Override
@@ -364,8 +352,8 @@ public class HealthInformation extends Fragment implements
 
                                     @Override
                                     public void run() {
-                                        if (lastFocussedPosition == -1 || lastFocussedPosition == position) {
-                                            lastFocussedPosition = position;
+                                        if (lastFocusedPosition == -1 || lastFocusedPosition == position) {
+                                            lastFocusedPosition = position;
                                             view.requestFocus();
                                             holder.editText.setCursorVisible(true);
                                         }
@@ -373,7 +361,8 @@ public class HealthInformation extends Fragment implements
                                 }, 200);
 
                             } else {
-                                lastFocussedPosition = -1;
+                                holder.editText.setCursorVisible(false);
+                                lastFocusedPosition = -1;
                                 try {
                                     if (answersList.containsKey(fieldsDetail.get(position).getInt("id"))
                                             && holder.editText.toString().trim().isEmpty()) {
@@ -393,13 +382,34 @@ public class HealthInformation extends Fragment implements
             } catch (JSONException e) {
                 e.printStackTrace();
             }
+            SpannableStringBuilder title = new SpannableStringBuilder();
+            try {
+                if (fieldsDetail.get(position).getInt("required") == 1) {
+                    String red = "* ";
+                    SpannableString redSpannable = new SpannableString(red);
+                    redSpannable.setSpan(new ForegroundColorSpan(Color.RED), 0, red.length(), 0);
+                    title.append(redSpannable);
+                    String white = fieldsDetail.get(position).getString("title");
+                    SpannableString whiteSpannable = new SpannableString(white);
+                    whiteSpannable.setSpan(new ForegroundColorSpan(Color.WHITE), 0, white.length(), 0);
+                    title.append(whiteSpannable);
+                    holder.title.setText(title, TextView.BufferType.SPANNABLE);
+                } else {
+                    String white = fieldsDetail.get(position).getString("title");
+                    SpannableString whiteSpannable = new SpannableString(white);
+                    whiteSpannable.setSpan(new ForegroundColorSpan(Color.WHITE), 0, white.length(), 0);
+                    title.append(whiteSpannable);
+                    holder.title.setText(title, TextView.BufferType.SPANNABLE);
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
             if ((position+1) == fieldsDetail.size()) {
                 holder.submitButton.setVisibility(View.VISIBLE);
                 holder.submitButton.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
                         mLinearlayout.requestFocus();
-//                Log.i("TAG", "" + submitButton.hasFocus());
                         if (AppGlobals.sEntryId == 0) {
                             Toast.makeText(getActivity(), "Please try again process failed",
                                     Toast.LENGTH_SHORT).show();
@@ -428,7 +438,6 @@ public class HealthInformation extends Fragment implements
 
         @Override
         public int getCount() {
-            Log.e("TAG", "" + fieldsDetail.size());
             return fieldsDetail.size();
         }
     }
@@ -436,8 +445,6 @@ public class HealthInformation extends Fragment implements
     private boolean validateEditText() {
         stringBuilder = new StringBuilder();
         boolean value = false;
-        Log.i("TAG", "array" + answersList.size());
-        Log.i("TAG", "required fields" + requiredFields);
         for (int id : idsArray) {
             if (answersList.size() >= (requiredFields.size() - 1)) {
                 if (answersList.containsKey(id)) {
@@ -470,7 +477,6 @@ public class HealthInformation extends Fragment implements
     }
 
     private void sendConsultationData(String data) {
-        Log.i("TAG", data);
         sPostRequest = true;
         mRequest = new HttpRequest(getActivity().getApplicationContext());
         mRequest.setOnReadyStateChangeListener(this);
