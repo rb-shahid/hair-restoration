@@ -216,7 +216,6 @@ public class MessagesFragment extends Fragment implements View.OnClickListener {
         }
     }
 
-
     class ChatArrayAdapter extends ArrayAdapter {
 
         private ViewHolder holder;

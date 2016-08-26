@@ -117,7 +117,6 @@ public class ConsultationFragment extends Fragment implements View.OnClickListen
                 } else {
                     pressedButtonId = view.getId();
                     selectImage(requestCodes[1]);
-//                    dispatchTakePictureIntent(requestCodes[1]);
                 }
                 break;
             case R.id.right_side:
@@ -127,7 +126,6 @@ public class ConsultationFragment extends Fragment implements View.OnClickListen
                 } else {
                     pressedButtonId = view.getId();
                     selectImage(requestCodes[2]);
-//                    dispatchTakePictureIntent(requestCodes[2]);
                 }
                 break;
             case R.id.top_side:
@@ -137,7 +135,6 @@ public class ConsultationFragment extends Fragment implements View.OnClickListen
                 } else {
                     pressedButtonId = view.getId();
                     selectImage(requestCodes[3]);
-//                    dispatchTakePictureIntent(requestCodes[3]);
                 }
                 break;
             case R.id.back_side:
@@ -151,29 +148,29 @@ public class ConsultationFragment extends Fragment implements View.OnClickListen
                 }
                 break;
             case R.id.upload_button:
-                FragmentManager fragmentManager = getFragmentManager();
-                        FragmentTransaction fragmentTransaction=fragmentManager.beginTransaction();
-                        fragmentTransaction.replace(R.id.container,new HealthInformation() , "health");
-                        fragmentTransaction.addToBackStack(null); //this will add it to back stack
-                        fragmentTransaction.commit();
-//                if (imagesHashMap.size() < 5) {
-//                    Toast.makeText(getActivity(), "Please capture all the images", Toast.LENGTH_SHORT).show();
-//                } else {
-//                    if (!sUploaded) {
-//                        if (AppGlobals.sIsInternetAvailable) {
-//                            new CheckInternet(false).execute();
-//                        } else {
-//                            Helpers.alertDialog(getActivity(), "No internet", "Please check your internet connection",
-//                                    executeTask(true));
-//                        }
-//                    } else {
-//                        FragmentManager fragmentManager = getFragmentManager();
+//                FragmentManager fragmentManager = getFragmentManager();
 //                        FragmentTransaction fragmentTransaction=fragmentManager.beginTransaction();
 //                        fragmentTransaction.replace(R.id.container,new HealthInformation() , "health");
 //                        fragmentTransaction.addToBackStack(null); //this will add it to back stack
 //                        fragmentTransaction.commit();
-//                    }
-//                }
+                if (imagesHashMap.size() < 5) {
+                    Toast.makeText(getActivity(), "Please capture all the images", Toast.LENGTH_SHORT).show();
+                } else {
+                    if (!sUploaded) {
+                        if (AppGlobals.sIsInternetAvailable) {
+                            new CheckInternet(false).execute();
+                        } else {
+                            Helpers.alertDialog(getActivity(), "No internet", "Please check your internet connection",
+                                    executeTask(true));
+                        }
+                    } else {
+                        FragmentManager fragmentManager = getFragmentManager();
+                        FragmentTransaction fragmentTransaction=fragmentManager.beginTransaction();
+                        fragmentTransaction.replace(R.id.container,new HealthInformation() , "health");
+                        fragmentTransaction.addToBackStack(null); //this will add it to back stack
+                        fragmentTransaction.commit();
+                    }
+                }
         }
     }
 
@@ -406,8 +403,6 @@ public class ConsultationFragment extends Fragment implements View.OnClickListen
                             fragmentTransaction.addToBackStack("Health_info");
                             fragmentTransaction.commit();
 
-
-//                        startActivity(new Intent(getActivity().getApplicationContext(), HealthInformation.class));
                         }
                     } catch (JSONException e) {
                         e.printStackTrace();

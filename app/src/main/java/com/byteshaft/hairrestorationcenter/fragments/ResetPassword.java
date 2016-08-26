@@ -32,7 +32,6 @@ public class ResetPassword extends Fragment {
 
     private String mEmailAddressString;
     private String mOldPasswordString;
-    private String mNewPasswordrString;
     private String mPasswordString;
 
     @Override

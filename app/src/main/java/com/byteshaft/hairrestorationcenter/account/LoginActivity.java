@@ -55,7 +55,6 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
     @Override
     public void onBackPressed() {
         super.onBackPressed();
-        Log.i("TAG", "called");
         finish();
         MainActivity.getInstance().finish();
     }

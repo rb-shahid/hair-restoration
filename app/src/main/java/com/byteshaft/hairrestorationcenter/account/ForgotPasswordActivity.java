@@ -26,9 +26,7 @@ public class ForgotPasswordActivity extends AppCompatActivity {
 
     private Button mRecoverButton;
     private EditText mEmail;
-
     private String mEmailString;
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

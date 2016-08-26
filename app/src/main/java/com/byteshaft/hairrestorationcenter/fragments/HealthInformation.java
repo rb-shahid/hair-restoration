@@ -1,12 +1,10 @@
 package com.byteshaft.hairrestorationcenter.fragments;
 
 import android.app.ProgressDialog;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.graphics.Color;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.Handler;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.AlertDialog;
 import android.text.SpannableString;
@@ -17,14 +15,11 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.LinearLayout;
-import android.widget.ListView;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -43,7 +38,9 @@ import org.json.JSONObject;
 import java.net.HttpURLConnection;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 public class HealthInformation extends Fragment implements
         HttpRequest.OnReadyStateChangeListener, View.OnClickListener {
@@ -52,63 +49,44 @@ public class HealthInformation extends Fragment implements
     private EditText age;
     private ProgressDialog mProgressDialog;
     private HttpRequest mRequest;
-    private ListView mListView;
     private ArrayList<JSONObject> fieldData;
-    private ArrayList<Integer> idsArray;
+    private HashMap<Integer, Integer> serverIds;
     private HashMap<Integer, String> answersList;
 //    private Button submitButton;
     private StringBuilder stringBuilder = new StringBuilder();
-    private ArrayList<String> requiredFields;
+    private ArrayList<Integer> requiredFields;
     private int idForGender = 2;
     private static boolean sPostRequest = false;
     private View mBaseView;
 
     private List<String> checkBoxAnswer;
-    private LinearLayout mLinearlayout;
+    private LinearLayout mLinearLayout;
+    private LinearLayout editTextItems;
+    private LinearLayout checkBoxLayout;
+    private ArrayList<Integer> editTextIds;
+    private Button submitButton;
+    private List<EditText> allEditTexts = new ArrayList<>();
+    private ArrayList<Integer> arrayList = new ArrayList<>();
 
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        mBaseView = inflater.inflate(R.layout.health_information, container, false);
         getActivity().getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
+        mBaseView = inflater.inflate(R.layout.health_information, container, false);
         fieldData = new ArrayList<>();
-        idsArray = new ArrayList<>();
+        serverIds = new HashMap<>();
         answersList = new HashMap<>();
         requiredFields = new ArrayList<>();
         checkBoxAnswer = new ArrayList<>();
+        editTextIds = new ArrayList<>();
         age = (EditText) mBaseView.findViewById(R.id.age);
         gender = (Spinner) mBaseView.findViewById(R.id.gender);
-//        submitButton = (Button) mBaseView.findViewById(R.id.submit_answers);
-        mLinearlayout = (LinearLayout) mBaseView.findViewById(R.id.main_layout);
-//        submitButton.setOnClickListener(this);
-        mListView = (ListView) mBaseView.findViewById(R.id.fields_list_view);
+        mLinearLayout = (LinearLayout) mBaseView.findViewById(R.id.main_layout);
+        editTextItems = (LinearLayout) mBaseView.findViewById(R.id.edit_text_layout);
+        checkBoxLayout = (LinearLayout) mBaseView.findViewById(R.id.checkbox_layout);
+        submitButton = (Button) mBaseView.findViewById(R.id.submit_answers);
+        submitButton.setOnClickListener(this);
         mProgressDialog = Helpers.getProgressDialog(getActivity());
-        age.setOnFocusChangeListener(new View.OnFocusChangeListener() {
-            @Override
-            public void onFocusChange(View view, boolean b) {
-                if (b) {
-
-                } else {
-                    if (answersList.containsKey(age.getId())
-                            && age.toString().trim().isEmpty()) {
-                        answersList.remove(age.getId());
-                    } else {
-                        answersList.put(age.getId(), age.getText().toString());
-                    }
-                }
-            }
-        });
-        gender.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
-
-            }
-
-            @Override
-            public void onNothingSelected(AdapterView<?> adapterView) {
-
-            }
-        });
         if (AppGlobals.sIsInternetAvailable) {
             new CheckInternet(false).execute();
         } else {
@@ -182,41 +160,103 @@ public class HealthInformation extends Fragment implements
 
     private void parseJsonAndSetUi(String data) {
         JSONObject jsonObject;
+        ViewGroup root = null;
         try {
             jsonObject = new JSONObject(data);
             if (jsonObject.getString("Message").equals("Successfully")) {
                 JSONArray jsonArray = jsonObject.getJSONArray("details");
                 for (int i = 0; i < jsonArray.length(); i++) {
-                    JSONObject json = jsonArray.getJSONObject(i);
+                    final JSONObject json = jsonArray.getJSONObject(i);
                     Log.i("TAG", "Boolean " + json.getString("title").equals("Gender"));
-                    if (!json.getString("title").equals("Age")) {
-                        if (!json.getString("title").equals("Gender")) {
-                            fieldData.add(json);
-                            idsArray.add(json.getInt("id"));
+                    String itemType = json.getString("field_type");
+                    if (itemType.equals("checkbox")) {
+                        serverIds.put(i, json.getInt("id"));
                             if (json.getInt("required") == 1) {
-                                requiredFields.add(String.valueOf(json.getInt("id")));
+                                requiredFields.add(i);
                                 Log.i("REQUIRED", "fields" + requiredFields);
                             }
+                        JSONArray checkBoxes = json.optJSONArray("field_data");
+                        LayoutInflater inflater = getActivity().getLayoutInflater();
+                        root = (ViewGroup)inflater.inflate(R.layout.layout_checkbox,
+                                checkBoxLayout, false);
+                        LinearLayout linearLayout = (LinearLayout) root.findViewById(R.id.inflate_checkbox);
+                        TextView title = (TextView) root.findViewById(R.id.checkbox_title);
+                        int mandatory = json.getInt("required");
+                        title.setText(
+                                getFormattedTitle(json.getString("title"), mandatory), TextView.BufferType.SPANNABLE);
+                        for (int j = 0; j < checkBoxes.length(); j++) {
+                            CheckBox checkBox = new CheckBox(getActivity());
+                            checkBox.setText((String) checkBoxes.opt(j));
+                            checkBox.setTextColor(getResources().getColor(android.R.color.white));
+                            checkBox.setButtonDrawable(getResources().getDrawable(
+                                    R.drawable.checkbox_background));
+                            checkBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                                @Override
+                                public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
+                                    if (b) {
+                                        Log.i("Checkbox", " " + compoundButton.getText().toString());
+                                        checkBoxAnswer.add(compoundButton.getText().toString());
+                                        if (checkBoxAnswer.size() > 0) {
+                                            try {
+                                                answersList.put(json
+                                                        .getInt("id"), checkBoxAnswer.toString());
+                                                Log.i("checked", String.valueOf(answersList));
+                                            } catch (JSONException e) {
+                                                e.printStackTrace();
+                                            }
+                                        }
+                                    } else {
+                                        checkBoxAnswer.remove(compoundButton.getText().toString());
+                                        if (checkBoxAnswer.size() < 1) {
+                                            try {
+                                                answersList.remove(json
+                                                        .getInt("id"));
+                                            } catch (JSONException e) {
+                                                e.printStackTrace();
+                                            }
+                                        }
+                                        Log.i("Unchecked", String.valueOf(checkBoxAnswer));
+                                    }
+                                }
+                            });
+                            linearLayout.addView(checkBox);
                         }
-                    } else if (json.getString("title").equals("Age")) {
-                        idsArray.add(json.getInt("id"));
+                        checkBoxLayout.addView(root);
+                    }  else if (json.getString("title").equals("Age")) {
+                        serverIds.put(i, json.getInt("id"));
+                        editTextIds.add(i);
                         age.setId(json.getInt("id"));
+                        allEditTexts.add(age);
                         if (json.getInt("required") == 1) {
-                            if (!requiredFields.contains(String.valueOf(json.getInt("id")))) {
-                                requiredFields.add(String.valueOf(json.getInt("id")));
+                            if (!requiredFields.contains(i)) {
+                                requiredFields.add(i);
                                 Log.e("TAG", "added age");
                             }
                         }
+                    } else if (itemType.equals("textbox")) {
+                        serverIds.put(i, json.getInt("id"));
+                        if (json.getInt("required") == 1) {
+                            requiredFields.add(i);
+                            Log.i("REQUIRED", "fields" + requiredFields);
+                        }
+                        ViewGroup editTextRoot;
+                        LayoutInflater editTextInflater = getActivity().getLayoutInflater();
+                        editTextRoot = (ViewGroup) editTextInflater.inflate(R.layout.edittext_item,
+                                editTextItems , false);
+                        TextView title = (TextView) editTextRoot.findViewById(R.id.field_title);
+                        EditText editText = (EditText) editTextRoot.findViewById(R.id.field_answer);
+                        editText.setId(i);
+                        allEditTexts.add(editText);
+                        int mandatory = json.getInt("required");
+                        Log.i("TAG", "title "+ json.getString("title"));
+                        title.setText(getFormattedTitle(json.getString("title"), mandatory),
+                                TextView.BufferType.SPANNABLE);
+                        editTextItems.addView(editTextRoot);
+
                     }
                     if (json.getString("title").equals("Gender")) {
                         Log.e("GENDER", " gender");
                         idForGender = json.getInt("id");
-                        if (json.getInt("required") == 1) {
-                            if (!requiredFields.contains(String.valueOf(json.getInt("id")))) {
-                                requiredFields.add(String.valueOf(json.getInt("id")));
-                                Log.e("TAG", "added gender");
-                            }
-                        }
                     }
                     Log.e("required fields ", "test " + requiredFields);
                 }
@@ -226,17 +266,29 @@ public class HealthInformation extends Fragment implements
         } catch (JSONException e) {
             e.printStackTrace();
         }
-        Adapter adapter = new Adapter(getActivity().getApplicationContext(), fieldData,
-                R.layout.delegate_consultation_fields);
-        mListView.setAdapter(adapter);
+    }
+
+    private SpannableStringBuilder getFormattedTitle(String text, int mandatory) {
+        SpannableStringBuilder realText = new SpannableStringBuilder();
+        if (mandatory == 1) {
+            String asterisk = "* ";
+            SpannableString mandatorySpannable = new SpannableString(asterisk);
+            mandatorySpannable.setSpan(
+                    new ForegroundColorSpan(Color.RED), 0, asterisk.length(), 0);
+            realText.append(mandatorySpannable);
+        }
+        SpannableString whiteSpannable = new SpannableString(text);
+        whiteSpannable.setSpan(new ForegroundColorSpan(Color.WHITE), 0, text.length(), 0);
+        realText.append(whiteSpannable);
+        return realText;
     }
 
     @Override
     public void onClick(View view) {
         switch (view.getId()) {
             case R.id.submit_answers:
-                mLinearlayout.requestFocus();
-//                Log.i("TAG", "" + submitButton.hasFocus());
+                mLinearLayout.requestFocus();
+                Log.i("TAG", "" + submitButton.hasFocus());
                 if (AppGlobals.sEntryId == 0) {
                     Toast.makeText(getActivity(), "Please try again process failed",
                             Toast.LENGTH_SHORT).show();
@@ -259,221 +311,50 @@ public class HealthInformation extends Fragment implements
         }
     }
 
-    class Adapter extends ArrayAdapter<JSONObject> {
-
-        private ArrayList<JSONObject> fieldsDetail;
-        private ArrayList<String> checkBoxes;
-        private int lastFocusedPosition = -1;
-        private Handler handler = new Handler();
-
-        public Adapter(Context context, ArrayList<JSONObject> fieldsDetail, int resource) {
-            super(context, resource);
-            this.fieldsDetail = fieldsDetail;
-            Log.i("TAG", String.valueOf(fieldsDetail));
-            checkBoxes = new ArrayList<>();
-        }
-
-        @Override
-        public View getView(final int position, View convertView, ViewGroup parent) {
-            final ViewHolder holder;
-            if (convertView == null) {
-                LayoutInflater inflater = getActivity().getLayoutInflater();
-                convertView = inflater.inflate(R.layout.delegate_consultation_fields, parent, false);
-                holder = new ViewHolder();
-                holder.title = (TextView) convertView.findViewById(R.id.field_title);
-                holder.editText = (EditText) convertView.findViewById(R.id.field_answer);
-                holder.editTextLayout = (LinearLayout) convertView.findViewById(R.id.edit_text_layout);
-                holder.checkBoxLayout = (LinearLayout) convertView.findViewById(R.id.checkbox_layout);
-                holder.submitButton = (Button) convertView.findViewById(R.id.submit_answers);
-                convertView.setTag(holder);
-            } else {
-                holder = (ViewHolder) convertView.getTag();
-            }
-            try {
-                Log.e("TAG", "condition " + fieldsDetail.get(position).getString("field_type").equals("textbox"));
-                if (!fieldsDetail.get(position).getString("field_type").equals("textbox")) {
-                    holder.editTextLayout.setVisibility(View.GONE);
-                    holder.checkBoxLayout.setVisibility(View.VISIBLE);
-                    JSONArray arrJson = fieldsDetail.get(position).getJSONArray("field_data");
-                    String[] strings = new String[arrJson.length()];
-                    for (int i = 0; i < arrJson.length(); i++) {
-                        strings[i] = arrJson.getString(i);
-                    }
-                    for (String fieldItem : strings) {
-                        if (!checkBoxes.contains(fieldItem)) {
-                            checkBoxes.add(fieldItem);
-                            CheckBox checkBox = new CheckBox(getActivity());
-                            checkBox.setText(fieldItem);
-                            checkBox.setTextColor(getResources().getColor(android.R.color.white));
-                            checkBox.setButtonDrawable(getResources().getDrawable(
-                                    R.drawable.checkbox_background));
-                            checkBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-                                @Override
-                                public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
-                                    if (b) {
-                                        Log.i("Checkbox", " " + compoundButton.getText().toString());
-                                        checkBoxAnswer.add(compoundButton.getText().toString());
-                                        if (checkBoxAnswer.size() > 0) {
-                                            try {
-                                                answersList.put(fieldsDetail.get(position)
-                                                        .getInt("id"), checkBoxAnswer.toString().replace("[", "")
-                                                        .replace("]", ""));
-                                                Log.i("checked", String.valueOf(answersList));
-                                            } catch (JSONException e) {
-                                                e.printStackTrace();
-                                            }
-                                        }
-                                    } else {
-                                        checkBoxAnswer.remove(compoundButton.getText().toString());
-                                        if (checkBoxAnswer.size() < 1) {
-                                            try {
-                                                answersList.remove(fieldsDetail.get(position)
-                                                        .getInt("id"));
-                                            } catch (JSONException e) {
-                                                e.printStackTrace();
-                                            }
-                                        }
-                                        Log.i("Unchecked", String.valueOf(checkBoxAnswer));
-                                    }
-                                }
-                            });
-                            holder.checkBoxLayout.addView(checkBox);
-                        }
-                    }
-                } else {
-                    holder.editTextLayout.setVisibility(View.VISIBLE);
-                    holder.checkBoxLayout.setVisibility(View.GONE);
-                    holder.editText.setId(fieldsDetail.get(position).getInt("id"));
-                    holder.editText.setOnFocusChangeListener(new View.OnFocusChangeListener() {
-                        @Override
-                        public void onFocusChange(final View view, boolean b) {
-                            if (b) {
-                                handler.postDelayed(new Runnable() {
-
-                                    @Override
-                                    public void run() {
-                                        if (lastFocusedPosition == -1 || lastFocusedPosition == position) {
-                                            lastFocusedPosition = position;
-                                            view.requestFocus();
-                                            holder.editText.setCursorVisible(true);
-                                        }
-                                    }
-                                }, 200);
-
-                            } else {
-                                holder.editText.setCursorVisible(false);
-                                lastFocusedPosition = -1;
-                                try {
-                                    if (answersList.containsKey(fieldsDetail.get(position).getInt("id"))
-                                            && holder.editText.toString().trim().isEmpty()) {
-                                        answersList.remove(fieldsDetail.get(position).getInt("id"));
-                                    } else {
-                                        if (!holder.editText.getText().toString().trim().isEmpty()) {
-                                            answersList.put(fieldsDetail.get(position).getInt("id"), holder.editText.getText().toString());
-                                        }
-                                    }
-                                } catch (JSONException e) {
-                                    e.printStackTrace();
-                                }
-                            }
-                        }
-                    });
-                }
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-            SpannableStringBuilder title = new SpannableStringBuilder();
-            try {
-                if (fieldsDetail.get(position).getInt("required") == 1) {
-                    String red = "* ";
-                    SpannableString redSpannable = new SpannableString(red);
-                    redSpannable.setSpan(new ForegroundColorSpan(Color.RED), 0, red.length(), 0);
-                    title.append(redSpannable);
-                    String white = fieldsDetail.get(position).getString("title");
-                    SpannableString whiteSpannable = new SpannableString(white);
-                    whiteSpannable.setSpan(new ForegroundColorSpan(Color.WHITE), 0, white.length(), 0);
-                    title.append(whiteSpannable);
-                    holder.title.setText(title, TextView.BufferType.SPANNABLE);
-                } else {
-                    String white = fieldsDetail.get(position).getString("title");
-                    SpannableString whiteSpannable = new SpannableString(white);
-                    whiteSpannable.setSpan(new ForegroundColorSpan(Color.WHITE), 0, white.length(), 0);
-                    title.append(whiteSpannable);
-                    holder.title.setText(title, TextView.BufferType.SPANNABLE);
-                }
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-            if ((position+1) == fieldsDetail.size()) {
-                holder.submitButton.setVisibility(View.VISIBLE);
-                holder.submitButton.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View view) {
-                        mLinearlayout.requestFocus();
-                        if (AppGlobals.sEntryId == 0) {
-                            Toast.makeText(getActivity(), "Please try again process failed",
-                                    Toast.LENGTH_SHORT).show();
-                            MainActivity.loadFragment(new ConsultationFragment());
-                        } else {
-                            boolean result = validateEditText();
-                            Log.i("boolean", " " + result);
-                            if (result) {
-                                mProgressDialog.show();
-                                if (AppGlobals.sIsInternetAvailable) {
-                                    new SendData(false).execute();
-                                } else {
-                                    Helpers.alertDialog(getActivity(), "No internet", "Please check your internet connection",
-                                            executeSendData(true));
-                                }
-                            }
-                        }
-
-                    }
-                });
-            } else {
-                holder.submitButton.setVisibility(View.GONE);
-            }
-            return convertView;
-        }
-
-        @Override
-        public int getCount() {
-            return fieldsDetail.size();
-        }
-    }
-
     private boolean validateEditText() {
         stringBuilder = new StringBuilder();
         boolean value = false;
-        for (int id : idsArray) {
-            if (answersList.size() >= (requiredFields.size() - 1)) {
-                if (answersList.containsKey(id)) {
+        Log.i("TAG", String.valueOf(requiredFields));
+        for(int i=0; i < allEditTexts.size(); i++) {
+            Log.i("TAG", allEditTexts.get(i).getText().toString());
+            String text  = allEditTexts.get(i).getText().toString();
+            if (text.trim().isEmpty()) {
+                Toast.makeText(getActivity(), "All required fields must be filled",
+                        Toast.LENGTH_SHORT).show();
+                return false;
+            }
+            if (requiredFields.contains(i)) {
+                Log.i("TAG", " "+ i + " " + text.trim().isEmpty());
+                if (!text.trim().isEmpty()){
+                    stringBuilder.append(String.format("data[%d]=%s&", serverIds.get(i), text));
                     value = true;
-                    stringBuilder.append(String.format("data[%d]=%s&", id, answersList.get(id)));
                 }
-            } else if (answersList.size() < requiredFields.size()) {
-                value = false;
-                Toast.makeText(getActivity(), "All required fields must be filled", Toast.LENGTH_SHORT).show();
-                break;
-            } else {
-                value = false;
-                Toast.makeText(getActivity(), "All required fields must be filled", Toast.LENGTH_SHORT).show();
-                break;
             }
         }
+        if (answersList.size() < 1) {
+            Toast.makeText(getActivity(), "All required fields must be filled",
+                    Toast.LENGTH_SHORT).show();
+            return false;
+        }
+        printMap(answersList);
         stringBuilder.append(String.format("user_id=%s&", AppGlobals.getStringFromSharedPreferences(AppGlobals.KEY_USER_ID)));
         stringBuilder.append(String.format("entry_id=%s&", AppGlobals.sEntryId));
         stringBuilder.append(String.format("data[%d]=%s", idForGender, gender.getSelectedItem().toString()));
-        Log.i("String", stringBuilder.toString());
+        Log.e("String", stringBuilder.toString());
         return value;
     }
 
-    class ViewHolder {
-        public TextView title;
-        public EditText editText;
-        public LinearLayout editTextLayout;
-        public LinearLayout checkBoxLayout;
-        public Button submitButton;
+    public void printMap(Map mp) {
+        Iterator it = mp.entrySet().iterator();
+        while (it.hasNext()) {
+            Map.Entry pair = (Map.Entry)it.next();
+            arrayList.add((Integer) pair.getKey());
+            stringBuilder.append(String.format("data[%d]=%s&", pair.getKey(),
+                    pair.getValue().toString().replace("[", "").replace("]", "")));
+            if (it.hasNext()) {
+                it.next();
+            }
+        }
     }
 
     private void sendConsultationData(String data) {
